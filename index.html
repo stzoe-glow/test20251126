@@ -3,370 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아그네스의 유니콘 구구단</title>
+    <title>Make Your Magic Spells</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Crimson+Text:ital,wght@1,600&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        :root {
+            --gryffindor-red: #740001;
+            --hogwarts-gold: #d3a625;
+            --parchment-bg: #f5e6c8;
+            --dark-bg: #0e0e0e;
+            --card-size: 100px;
+        }
 
         body {
+            font-family: 'Cinzel', serif;
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle at center, #2e2e2e 0%, #000000 100%);
+            color: var(--hogwarts-gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
-            background-color: #ffe6f2; /* 연한 핑크 배경 */
-            font-family: 'Jua', sans-serif; /* 귀여운 폰트 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-image: radial-gradient(#fff0f5 20%, #ffe6f2 80%);
-        }
-
-        /* 게임 화면 */
-        canvas {
-            background-color: rgba(255, 255, 255, 0.6);
-            border: 8px solid #ff99cc; /* 진한 핑크 테두리 */
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
-            display: block;
-        }
-
-        /* 하단 입력 UI */
-        #ui-container {
-            position: absolute;
-            bottom: 30px;
-            width: 600px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        /* 입력창 스타일 - 아그네스 옷 색깔(노랑) 포인트 */
-        #answer-input {
-            width: 200px;
-            padding: 15px;
-            font-size: 30px;
-            font-family: 'Jua', sans-serif;
-            border: 4px solid #fecb00; /* 노란색 테두리 */
-            border-radius: 50px;
-            outline: none;
-            text-align: center;
-            background-color: white;
-            color: #333;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        #answer-input:focus {
-            border-color: #ff69b4; /* 포커스시 핫핑크 */
-        }
-
-        /* 점수판 */
-        #score-board {
-            position: absolute;
-            top: 20px;
-            font-size: 28px;
-            color: #ff69b4;
-            background: white;
-            padding: 10px 30px;
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(255, 182, 193, 0.5);
-            z-index: 10;
-        }
-
-        /* 오버레이 (시작/종료 화면) */
-        #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            backdrop-filter: blur(5px);
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         h1 {
-            font-size: 60px;
-            color: #ff69b4;
-            text-shadow: 3px 3px 0px #fecb00;
+            text-shadow: 0 0 10px var(--hogwarts-gold);
             margin-bottom: 10px;
+            text-align: center;
         }
 
-        p { color: #555; font-size: 20px; }
-        
-        button {
-            padding: 15px 50px;
-            font-size: 30px;
-            font-family: 'Jua', sans-serif;
-            cursor: pointer;
-            background: #ff69b4;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            margin-top: 30px;
-            transition: transform 0.2s, background 0.2s;
-            box-shadow: 0 5px 0 #db4c93;
+        /* --- [화면 전환용 스타일] --- */
+        .screen {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.5s;
         }
-        button:hover { 
-            background: #ff85c2; 
+        .hidden { display: none !important; }
+
+        /* --- [1. 입력 화면 스타일] --- */
+        .input-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border: 2px solid var(--hogwarts-gold);
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--hogwarts-gold);
+            color: #fff;
+            padding: 10px;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1rem;
+            width: 40%;
+            text-align: center;
+        }
+        input:focus { outline: none; border-bottom-color: var(--gryffindor-red); }
+        input::placeholder { color: rgba(255,255,255,0.4); }
+
+        /* 양피지 느낌의 단어 리스트 */
+        .word-list-area {
+            background-color: var(--parchment-bg);
+            color: #3e2723;
+            width: 100%;
+            height: 200px;
+            overflow-y: auto;
+            border-radius: 5px;
+            margin: 20px 0;
+            padding: 10px;
+            font-family: 'Crimson Text', serif;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            list-style: none;
+            text-align: left;
+        }
+        
+        .word-item {
+            border-bottom: 1px dashed #8d6e63;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-btn {
+            background: transparent;
+            color: #8d6e63;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0 5px;
+        }
+        .delete-btn:hover { color: red; }
+
+        /* --- [2. 게임 화면 스타일] --- */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, var(--card-size));
+            gap: 15px;
+            perspective: 1000px;
+            margin-top: 20px;
+        }
+
+        .status-bar { margin-bottom: 20px; font-size: 1.2rem; display: flex; gap: 20px;}
+
+        /* --- [공통 버튼 스타일] --- */
+        button.action-btn {
+            font-family: 'Cinzel', serif;
+            background: var(--gryffindor-red);
+            color: var(--hogwarts-gold);
+            border: 2px solid var(--hogwarts-gold);
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: 0.3s;
+            margin: 5px;
+        }
+        button.action-btn:hover {
+            background-color: #ae0001;
+            box-shadow: 0 0 15px var(--hogwarts-gold);
             transform: scale(1.05);
         }
-        button:active {
-            box-shadow: none;
-            transform: translateY(5px);
+
+        /* --- [카드 스타일] --- */
+        .card {
+            width: var(--card-size);
+            height: calc(var(--card-size) * 1.3);
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        .card.flip { transform: rotateY(180deg); }
+        .front, .back {
+            width: 100%; height: 100%; position: absolute;
+            border-radius: 8px; display: flex; justify-content: center; align-items: center;
+            backface-visibility: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            border: 2px solid #5a4a28;
+        }
+        .front {
+            background-color: var(--gryffindor-red);
+            /* 격자 패턴 */
+            background-image: linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%), 
+                              linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--hogwarts-gold); font-size: 2.5rem;
+        }
+        .back {
+            background-color: var(--parchment-bg); color: #3e2723;
+            transform: rotateY(180deg); font-family: 'Crimson Text', serif;
+            font-weight: bold; font-size: 1.1rem; text-align: center; padding: 5px; word-break: keep-all;
+        }
+        .card.matched .back {
+            border: 3px solid var(--hogwarts-gold);
+            box-shadow: 0 0 15px var(--hogwarts-gold);
+            background-color: #fff8e1;
         }
 
-        .hidden { display: none !important; }
+        /* 모바일 대응 */
+        @media (max-width: 600px) {
+            :root { --card-size: 70px; }
+            .game-board { gap: 10px; }
+            .input-group { flex-direction: column; }
+            input { width: 100%; box-sizing: border-box;}
+        }
     </style>
 </head>
 <body>
 
-    <div id="score-board">
-        🦄 모은 유니콘: <span id="score-val">0</span>마리
+    <h1>⚡ Magic Memory ⚡</h1>
+
+    <!-- [1] 단어 입력 화면 -->
+    <div id="setup-screen" class="screen">
+        <div class="input-container">
+            <h3 style="margin-top:0;">Create Your Spell Book</h3>
+            <p style="font-size:0.9rem; font-family:'Crimson Text'; color:#ccc;">
+                Enter English word and Meaning below.
+            </p>
+
+            <div class="input-group">
+                <input type="text" id="input-en" placeholder="English (e.g. Magic)">
+                <input type="text" id="input-ko" placeholder="Meaning (e.g. 마법)">
+            </div>
+            
+            <button class="action-btn" onclick="addWord()">Add Spell</button>
+
+            <!-- 추가된 단어 리스트 표시 -->
+            <ul id="word-list" class="word-list-area">
+                <li style="text-align:center; color:#888; padding-top:20px;">
+                    The scroll is empty...
+                </li>
+            </ul>
+
+            <button class="action-btn" onclick="prepareGame()" style="width:100%; margin-top:10px; background-color:var(--hogwarts-gold); color:#000;">
+                Start Magic ✨
+            </button>
+        </div>
     </div>
 
-    <canvas id="gameCanvas" width="600" height="800"></canvas>
-
-    <div id="ui-container">
-        <input type="number" id="answer-input" placeholder="정답!" autocomplete="off">
-    </div>
-
-    <div id="overlay">
-        <h1>IT'S SO FLUFFY!</h1>
-        <p>내려오는 유니콘 구구단을 맞춰주세요!</p>
-        <p id="final-score" style="display:none; font-size: 30px; color: #ff69b4; font-weight:bold; margin-top:20px;"></p>
-        <button id="start-btn">게임 시작 🦄</button>
+    <!-- [2] 게임 플레이 화면 -->
+    <div id="game-screen" class="screen hidden">
+        <div class="status-bar">
+            <span>Remains: <b id="pairs-left" style="color:white">0</b></span>
+            <button class="action-btn" onclick="stopGame()" style="padding:5px 15px; font-size:0.8rem;">Edit List</button>
+        </div>
+        <div class="game-board" id="game-board"></div>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const inputField = document.getElementById('answer-input');
-        const scoreEl = document.getElementById('score-val');
-        const overlay = document.getElementById('overlay');
-        const startBtn = document.getElementById('start-btn');
-        const finalScoreText = document.getElementById('final-score');
-        const titleText = document.querySelector('h1');
+        // --- 데이터 변수 ---
+        let myWords = []; // 사용자가 추가한 단어가 여기에 저장됨
+        
+        // --- DOM 요소 ---
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const wordListUI = document.getElementById('word-list');
+        const inputEn = document.getElementById('input-en');
+        const inputKo = document.getElementById('input-ko');
+        const gameBoard = document.getElementById('game-board');
+        const pairsLeftDisplay = document.getElementById('pairs-left');
 
-        let problems = [];
-        let particles = []; // 반짝이 효과
-        let score = 0;
-        let pileHeight = 0; // 쌓인 높이
-        let gameRunning = false;
-        let frameCount = 0;
-        let spawnRate = 80;
-        let difficulty = 1;
+        // 엔터키 입력 이벤트 (편의성)
+        inputKo.addEventListener("keyup", function(event) {
+            if (event.key === "Enter") addWord();
+        });
 
-        // 유니콘 클래스
-        class Unicorn {
-            constructor() {
-                this.a = Math.floor(Math.random() * 8) + 2; 
-                this.b = Math.floor(Math.random() * 9) + 1;
-                this.question = `${this.a} x ${this.b}`;
-                this.answer = this.a * this.b;
-                
-                this.x = Math.random() * (canvas.width - 120) + 60;
-                this.y = -60;
-                this.speed = (Math.random() * 1.0 + 0.5) * difficulty;
-                
-                // 유니콘 이모지 크기 및 흔들림 효과 변수
-                this.size = 60;
-                this.wobble = Math.random() * Math.PI * 2;
-            }
+        // 1. 단어 추가하기
+        function addWord() {
+            const en = inputEn.value.trim();
+            const ko = inputKo.value.trim();
 
-            update() {
-                this.y += this.speed;
-                this.wobble += 0.05; // 둥실둥실 움직임
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                
-                // 좌우로 살짝 흔들리게
-                ctx.rotate(Math.sin(this.wobble) * 0.1);
-
-                // 1. 유니콘 그리기 (이모지 활용)
-                ctx.font = "80px Arial"; 
-                ctx.textAlign = "center";
-                ctx.fillText("🦄", 0, 10);
-
-                // 2. 말풍선 그리기 (문제 배경)
-                ctx.fillStyle = "white";
-                ctx.beginPath();
-                ctx.arc(0, -50, 40, 0, Math.PI*2);
-                ctx.fill();
-                ctx.strokeStyle = "#ff99cc";
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // 3. 문제 텍스트
-                ctx.fillStyle = "#ff69b4";
-                ctx.font = "bold 30px 'Jua', sans-serif";
-                ctx.fillText(this.question, 0, -40);
-
-                ctx.restore();
-            }
-        }
-
-        // 반짝이 효과 클래스
-        class Sparkle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 5 + 2;
-                this.speedX = Math.random() * 4 - 2;
-                this.speedY = Math.random() * 4 - 2;
-                this.alpha = 1;
-                this.color = `hsl(${Math.random()*60 + 300}, 100%, 70%)`; // 핑크~보라 계열
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.alpha -= 0.03;
-            }
-            draw() {
-                ctx.globalAlpha = this.alpha;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
-            }
-        }
-
-        function gameLoop() {
-            if (!gameRunning) return;
-
-            // 배경 지우기
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 1. 바닥(쌓인 유니콘들/구름) 그리기
-            let cloudHeight = (pileHeight / 100) * canvas.height;
-            
-            // 그라데이션 구름 효과
-            let gradient = ctx.createLinearGradient(0, canvas.height - cloudHeight, 0, canvas.height);
-            gradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-            gradient.addColorStop(1, "#ffccdd");
-
-            ctx.fillStyle = gradient;
-            
-            // 구름이 몽글몽글하게 보이도록 원 그리기
-            if (cloudHeight > 0) {
-                ctx.beginPath();
-                ctx.moveTo(0, canvas.height);
-                ctx.lineTo(0, canvas.height - cloudHeight);
-                // 몽글몽글 라인
-                for (let i = 0; i <= canvas.width; i+=40) {
-                    ctx.quadraticCurveTo(i + 20, canvas.height - cloudHeight - 20, i + 40, canvas.height - cloudHeight);
-                }
-                ctx.lineTo(canvas.width, canvas.height);
-                ctx.fill();
-            }
-
-            // 2. 문제 생성
-            frameCount++;
-            if (frameCount % Math.floor(spawnRate) === 0) {
-                problems.push(new Unicorn());
-                if (spawnRate > 30) spawnRate -= 0.2;
-                difficulty += 0.0005;
-            }
-
-            // 3. 문제 업데이트
-            for (let i = 0; i < problems.length; i++) {
-                let p = problems[i];
-                p.update();
-                p.draw();
-
-                // 바닥(구름)에 닿았을 때
-                if (p.y > canvas.height - cloudHeight - 40) {
-                    pileHeight += 10; // 높이 증가
-                    problems.splice(i, 1);
-                    i--;
-                    
-                    // 화면 흔들림 효과 (귀엽게)
-                    canvas.style.transform = "rotate(1deg)";
-                    setTimeout(() => canvas.style.transform = "rotate(-1deg)", 50);
-                    setTimeout(() => canvas.style.transform = "none", 100);
-                }
-            }
-
-            // 4. 반짝이 이펙트 업데이트
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-                if (particles[i].alpha <= 0) {
-                    particles.splice(i, 1);
-                    i--;
-                }
-            }
-
-            // 5. 게임 오버 체크
-            if (pileHeight >= 100) {
-                gameOver();
+            if (!en || !ko) {
+                alert("Please enter both word and meaning!");
                 return;
             }
 
-            requestAnimationFrame(gameLoop);
-        }
-
-        function checkAnswer() {
-            const userAnswer = parseInt(inputField.value);
-            if (isNaN(userAnswer)) return;
-
-            for (let i = 0; i < problems.length; i++) {
-                if (problems[i].answer === userAnswer) {
-                    // 반짝이 생성
-                    for(let k=0; k<10; k++) {
-                        particles.push(new Sparkle(problems[i].x, problems[i].y));
-                    }
-                    
-                    problems.splice(i, 1);
-                    score += 1;
-                    scoreEl.innerText = score;
-                    
-                    // 구름 조금 낮춰주기
-                    if(pileHeight > 0) pileHeight = Math.max(0, pileHeight - 3);
-                    break; 
-                }
-            }
-            inputField.value = "";
-        }
-
-        function startGame() {
-            score = 0;
-            pileHeight = 0;
-            difficulty = 1;
-            spawnRate = 80;
-            problems = [];
-            particles = [];
-            gameRunning = true;
+            // 리스트에 추가
+            myWords.push({ en: en, ko: ko });
             
-            scoreEl.innerText = 0;
-            overlay.classList.add('hidden');
-            inputField.focus();
-            
-            gameLoop();
+            // 입력창 비우기 및 포커스 이동
+            inputEn.value = "";
+            inputKo.value = "";
+            inputEn.focus();
+
+            renderList();
         }
 
-        function gameOver() {
-            gameRunning = false;
-            overlay.classList.remove('hidden');
-            titleText.innerText = "너무 꽉 찼어!";
-            startBtn.innerText = "다시 하기";
-            finalScoreText.style.display = "block";
-            finalScoreText.innerText = `총 ${score}마리의 유니콘을 구했어!`;
-        }
+        // 2. 리스트 화면에 그리기
+        function renderList() {
+            wordListUI.innerHTML = ""; // 초기화
 
-        startBtn.addEventListener('click', startGame);
-
-        inputField.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                checkAnswer();
+            if (myWords.length === 0) {
+                wordListUI.innerHTML = '<li style="text-align:center; color:#888; padding-top:20px;">The scroll is empty...</li>';
+                return;
             }
-        });
-        
-        canvas.addEventListener('click', () => inputField.focus());
 
+            myWords.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'word-item';
+                li.innerHTML = `
+                    <span><b>${item.en}</b> : ${item.ko}</span>
+                    <button class="delete-btn" onclick="removeWord(${index})">✕</button>
+                `;
+                wordListUI.appendChild(li);
+            });
+        }
+
+        // 3. 단어 삭제하기
+        function removeWord(index) {
+            myWords.splice(index, 1);
+            renderList();
+        }
+
+        // 4. 게임 준비 및 화면 전환
+        function prepareGame() {
+            if (myWords.length < 2) {
+                alert("You need at least 2 words to start magic!");
+                return;
+            }
+            
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            initGame();
+        }
+
+        function stopGame() {
+            if(confirm("Stop magic and go back to scroll?")) {
+                gameScreen.classList.add('hidden');
+                setupScreen.classList.remove('hidden');
+            }
+        }
+
+        // --- 여기서부터는 기존 게임 로직과 유사함 ---
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let pairsLeft = 0;
+
+        function initGame() {
+            gameBoard.innerHTML = '';
+            hasFlippedCard = false;
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+
+            // myWords 데이터를 기반으로 카드 생성
+            const doubleWords = [];
+            myWords.forEach(item => {
+                doubleWords.push({ text: item.en, pairId: item.en });
+                doubleWords.push({ text: item.ko, pairId: item.en });
+            });
+
+            pairsLeft = myWords.length;
+            pairsLeftDisplay.innerText = pairsLeft;
+
+            doubleWords.sort(() => 0.5 - Math.random());
+
+            // 카드 개수에 따라 그리드 조정 (너무 많으면 자동 줄바꿈 되지만 보기 좋게)
+            // 기본 CSS grid 사용
+
+            doubleWords.forEach(data => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.pairId = data.pairId;
+
+                const frontFace = document.createElement('div');
+                frontFace.classList.add('front');
+                frontFace.innerText = "⚡";
+
+                const backFace = document.createElement('div');
+                backFace.classList.add('back');
+                backFace.innerText = data.text;
+
+                card.appendChild(frontFace);
+                card.appendChild(backFace);
+                card.addEventListener('click', flipCard);
+                
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return;
+
+            this.classList.add('flip');
+
+            if (!hasFlippedCard) {
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+
+            secondCard = this;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+
+            pairsLeft--;
+            pairsLeftDisplay.innerText = pairsLeft;
+
+            resetBoard();
+
+            if (pairsLeft === 0) {
+                setTimeout(() => alert("✨ Mischief Managed! ✨\n완벽하게 외우셨군요!"), 500);
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                firstCard.classList.remove('flip');
+                secondCard.classList.remove('flip');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
     </script>
 </body>
 </html>
