@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구구단 산성비 게임</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* 스크롤 방지 */
+            background-color: #222;
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        /* 게임 화면(캔버스) 스타일 */
+        canvas {
+            background-color: #000;
+            border: 2px solid #555;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            display: block;
+        }
+
+        /* UI 컨테이너 */
+        #ui-container {
+            position: absolute;
+            bottom: 20px;
+            width: 600px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 입력창 스타일 */
+        #answer-input {
+            flex-grow: 1;
+            padding: 15px;
+            font-size: 24px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 점수 및 정보 표시 */
+        #score-board {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* 게임 시작/종료 오버레이 */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 20;
+        }
+        
+        button {
+            padding: 15px 40px;
+            font-size: 24px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        button:hover { background: #45a049; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- 점수판 -->
+    <div id="score-board">
+        점수: <span id="score-val">0</span> | 수위: <span id="water-val">0</span>%
+    </div>
+
+    <!-- 게임 캔버스 -->
+    <canvas id="gameCanvas" width="600" height="800"></canvas>
+
+    <!-- 입력창 (화면 하단) -->
+    <div id="ui-container">
+        <input type="number" id="answer-input" placeholder="정답 입력 후 엔터" autocomplete="off">
+    </div>
+
+    <!-- 시작/게임오버 화면 -->
+    <div id="overlay">
+        <h1 id="title-text">구구단 산성비</h1>
+        <p id="final-score" style="display:none; font-size: 20px; color: #ffeb3b;"></p>
+        <button id="start-btn">게임 시작</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const inputField = document.getElementById('answer-input');
+        const scoreEl = document.getElementById('score-val');
+        const waterEl = document.getElementById('water-val');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('start-btn');
+        const titleText = document.getElementById('title-text');
+        const finalScoreText = document.getElementById('final-score');
+
+        // 게임 상태 변수
+        let problems = [];
+        let score = 0;
+        let waterLevel = 0; // 0 ~ 100 (100이면 게임 오버)
+        let gameRunning = false;
+        let spawnRate = 60; // 문제 생성 주기 (프레임 단위)
+        let frameCount = 0;
+        let difficulty = 1; // 떨어지는 속도 계수
+
+        // 문제 클래스 정의
+        class Problem {
+            constructor() {
+                this.a = Math.floor(Math.random() * 8) + 2; // 2~9단
+                this.b = Math.floor(Math.random() * 9) + 1; // 1~9
+                this.question = `${this.a} x ${this.b}`;
+                this.answer = this.a * this.b;
+                
+                // 위치 및 속도 설정
+                this.x = Math.random() * (canvas.width - 100) + 20;
+                this.y = -30;
+                this.speed = (Math.random() * 1.5 + 0.5) * difficulty; // 속도 랜덤
+                this.color = `hsl(${Math.random() * 360}, 100%, 70%)`; // 알록달록한 색
+            }
+
+            update() {
+                this.y += this.speed;
+            }
+
+            draw() {
+                ctx.font = "bold 30px Arial";
+                ctx.fillStyle = this.color;
+                ctx.fillText(this.question, this.x, this.y);
+            }
+        }
+
+        // 게임 루프
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            // 1. 화면 지우기
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 산성비(수위) 그리기
+            let waterHeight = (waterLevel / 100) * canvas.height;
+            ctx.fillStyle = "rgba(0, 100, 255, 0.5)"; // 반투명 파란색
+            ctx.fillRect(0, canvas.height - waterHeight, canvas.width, waterHeight);
+
+            // 3. 문제 생성
+            frameCount++;
+            if (frameCount % Math.floor(spawnRate) === 0) {
+                problems.push(new Problem());
+                // 시간이 지날수록 조금씩 더 빨리 생성됨
+                if (spawnRate > 20) spawnRate -= 0.1;
+                difficulty += 0.001; 
+            }
+
+            // 4. 문제 업데이트 및 그리기
+            for (let i = 0; i < problems.length; i++) {
+                let p = problems[i];
+                p.update();
+                p.draw();
+
+                // 바닥(또는 물)에 닿았는지 확인
+                if (p.y > canvas.height - waterHeight - 10) {
+                    // 수위 상승
+                    waterLevel += 10; // 10% 상승
+                    waterEl.innerText = Math.floor(waterLevel);
+                    problems.splice(i, 1); // 문제 제거
+                    i--;
+                    
+                    // 화면 흔들림 효과 (심플하게)
+                    canvas.style.transform = "translate(5px, 5px)";
+                    setTimeout(() => canvas.style.transform = "none", 50);
+                }
+            }
+
+            // 5. 게임 오버 체크
+            if (waterLevel >= 100) {
+                gameOver();
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 정답 확인 함수
+        function checkAnswer() {
+            const userAnswer = parseInt(inputField.value);
+            if (isNaN(userAnswer)) return;
+
+            let matched = false;
+            // 화면에 있는 문제들 중 정답과 일치하는 것이 있는지 확인
+            // 가장 아래에 있는(y값이 큰) 문제부터 확인하여 제거 (사용자 편의)
+            // 이를 위해 배열을 복사해서 정렬하거나 역순으로 탐색해야 하지만
+            // 간단하게 앞에서부터 찾되, 정확히 일치하는 것 하나만 제거
+            
+            for (let i = 0; i < problems.length; i++) {
+                if (problems[i].answer === userAnswer) {
+                    problems.splice(i, 1); // 문제 제거
+                    score += 10;
+                    scoreEl.innerText = score;
+                    matched = true;
+                    
+                    // 수위 조금 낮춰주기 (보너스)
+                    if(waterLevel > 0) waterLevel = Math.max(0, waterLevel - 2);
+                    waterEl.innerText = Math.floor(waterLevel);
+                    break; 
+                }
+            }
+
+            // 입력창 초기화
+            inputField.value = "";
+        }
+
+        // 게임 시작
+        function startGame() {
+            score = 0;
+            waterLevel = 0;
+            difficulty = 1;
+            spawnRate = 60;
+            problems = [];
+            gameRunning = true;
+            
+            scoreEl.innerText = 0;
+            waterEl.innerText = 0;
+            overlay.classList.add('hidden');
+            inputField.focus();
+            
+            gameLoop();
+        }
+
+        // 게임 오버
+        function gameOver() {
+            gameRunning = false;
+            overlay.classList.remove('hidden');
+            titleText.innerText = "GAME OVER";
+            startBtn.innerText = "다시 하기";
+            
+            finalScoreText.style.display = "block";
+            finalScoreText.innerText = `최종 점수: ${score}점`;
+        }
+
+        // 이벤트 리스너
+        startBtn.addEventListener('click', startGame);
+
+        inputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // 모바일 등에서 입력창 밖을 클릭해도 포커스 유지하도록 (선택사항)
+        canvas.addEventListener('click', () => inputField.focus());
+
+    </script>
+</body>
+</html>
